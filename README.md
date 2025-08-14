@@ -16,7 +16,9 @@ sudo docker build \
 
 ### Run
 
-Modify the `compose.yml` according to the actual situation before running.
+Modify the `compose.yml` according to the actual situation before running
+
+- Pay attention to the `OUTPUT_HTTP_PREFIX` environment variable
 
 ```bash
 
