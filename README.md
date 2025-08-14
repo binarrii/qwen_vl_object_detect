@@ -30,3 +30,7 @@ curl -s http://10.252.25.251:8186/detect \
      -F prompt="puppy" | jq
 
 ```
+
+### Effect display
+
+![Sample Detection Output](./output_images/e847880800524519bf83b96d2a736155.png)
