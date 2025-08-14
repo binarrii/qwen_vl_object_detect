@@ -1,5 +1,10 @@
 ## Object Detection with VLM
 
+**Effect display**
+
+![Sample Detection Output](./output_images/e847880800524519bf83b96d2a736155.png)
+
+
 ### Build
 ```bash
 
@@ -74,7 +79,3 @@ Api output
 }
 
 ```
-
-### Effect display
-
-![Sample Detection Output](./output_images/e847880800524519bf83b96d2a736155.png)
