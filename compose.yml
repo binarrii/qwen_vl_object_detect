@@ -1,0 +1,14 @@
+services:
+  vl-object-detect:
+    image: binarii/vl-object-detect
+    container_name: vl-object-detect
+    restart: always
+    shm_size: 1g
+    ports:
+      - "8186:8186"
+    volumes:
+      - /data/vl-object-detect/output_images:/app/output_images
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8186/health || exit 1"]
+    environment:
+      OUTPUT_HTTP_PREFIX: http://10.252.25.251:8186
