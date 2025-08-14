@@ -44,6 +44,8 @@ async def detect(image: Union[str, UploadFile], target: str = ""):
             "image": image_url,
         }
     )
+
+
 @app.get("/health")
 async def health():
     return {"status": "ok"}
