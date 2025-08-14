@@ -5,7 +5,7 @@
 
 sudo docker build -t binarii/vl-object-detect .
 
-# or through proxy
+# or through proxy, replace with your own proxy server
 sudo docker build \
      --build-arg https_proxy=http://10.252.25.251:1085 \
      --build-arg http_proxy=http://10.252.25.251:1085 \
