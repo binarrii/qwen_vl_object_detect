@@ -31,6 +31,50 @@ curl -s http://10.252.25.251:8186/detect \
 
 ```
 
+Api output
+
+```json
+
+{
+  "json_output": [
+    {
+      "bbox_2d": [
+        292,
+        198,
+        687,
+        800
+      ],
+      "label": "dog"
+    },
+    {
+      "bbox_2d": [
+        681,
+        155,
+        1064,
+        753
+      ],
+      "label": "dog"
+    }
+  ],
+  "bboxes_only": [
+    [
+      292,
+      198,
+      687,
+      800
+    ],
+    [
+      681,
+      155,
+      1064,
+      753
+    ]
+  ],
+  "image": "http://10.252.25.251:8186/images/87e9cbf99b5b4de7a40f0402d781a959.png"
+}
+
+```
+
 ### Effect display
 
 ![Sample Detection Output](./output_images/e847880800524519bf83b96d2a736155.png)
