@@ -1,8 +1,6 @@
-import base64
-from io import BytesIO
-import json
 import time
 import uuid
+from io import BytesIO
 from typing import Union
 
 import requests
@@ -59,7 +57,7 @@ async def chatCompletions(req: Request):
     req_json = await req.json()
     print(req_json["messages"][0])
     print(req_json["messages"][1]["content"][0])
-    print(f"{req_json["messages"][1]["content"][1]["image_url"]["url"][:30]}...")
+    print(f"{req_json['messages'][1]['content'][1]['image_url']['url'][:30]}...")
 
     messages = req_json.get("messages", [])
 
