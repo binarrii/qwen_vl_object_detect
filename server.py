@@ -57,7 +57,9 @@ async def detect(image: Union[str, UploadFile], target: str = ""):
 @app.post("/v1/chat/completions")
 async def chatCompletions(req: Request):
     req_json = await req.json()
-    print(req_json["messages"][1]["content"][1]["image_url"]["url"][:20])
+    print(req_json["messages"][0])
+    print(req_json["messages"][1]["content"][0])
+    print(f"{req_json["messages"][1]["content"][1]["image_url"]["url"][:30]}...")
 
     messages = req_json.get("messages", [])
 
