@@ -35,4 +35,4 @@ if __name__ == "__main__":
         from vl.detection import QwenVLDetection
 
         det = QwenVLDetection()
-        json_output, bboxes_only, _ = det.detect(image=args.image, target=args.prompt)
+        det.detect(image=args.image, target=args.prompt)

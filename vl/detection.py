@@ -20,20 +20,33 @@ _SYSTEM_PROMPT = """
 class QwenVLDetection(VLCaption):
     model_id: str = env.VL_MODEL
     processor = AutoProcessor.from_pretrained(f"./{model_id}", trust_remote_code=True)
+    models = ["Qwen/Qwen2.5-VL-7B-Instruct", "Qwen/Qwen2.5-VL-32B-Instruct-AWQ"]
+
+    def _check_model(self, model: str):
+        return model if model in self.models else self.models[0]
 
     def detect(
         self,
         image,
         target: str,
+        sys_prompt: str = None,
         bbox_selection: str = "all",
         score_threshold: float = 0.6,
         merge_boxes: bool = False,
+        model=None,
+        max_tokens=2048,
+        temperature=0.5,
+        top_p=0.9,
+        frequency_penalty=0.0,
+        presence_penalty=0.0,
     ):
         image = Image.open(image) if isinstance(image, str) else image
+        _model = self._check_model(model)
+        _sys_prompt = sys_prompt or _SYSTEM_PROMPT
 
         prompt = f"定位 `{target}` 并以JSON格式输出边界框 bbox 坐标和标签"
         messages = [
-            {"role": "system", "content": _SYSTEM_PROMPT},
+            {"role": "system", "content": _sys_prompt},
             {
                 "role": "user",
                 "content": [{"type": "text", "text": prompt}, {"image": image}],
@@ -53,15 +66,15 @@ class QwenVLDetection(VLCaption):
             image_in=image,
             protocol="openai",
             custom_model=self.model_id,
-            model=None,
+            model=_model,
             ollama_model=None,
-            system_prompt=_SYSTEM_PROMPT,
+            system_prompt=_sys_prompt,
             caption_prompt=prompt,
-            max_tokens=2000,
-            temperature=0.5,
-            top_p=0.9,
-            frequency_penalty=0.0,
-            presence_penalty=0.0,
+            max_tokens=max_tokens,
+            temperature=temperature,
+            top_p=top_p,
+            frequency_penalty=frequency_penalty,
+            presence_penalty=presence_penalty,
             base_url=env.VL_MODEL_BASE_URL,
             api_key=env.VL_MODEL_API_KEY,
         )
@@ -115,4 +128,4 @@ class QwenVLDetection(VLCaption):
         image_file = f"output_images/{image_name}"
         new_image.save(image_file)
 
-        return (json_boxes, bboxes_only, image_name)
+        return (json_output, json_boxes, bboxes_only, image_name)
