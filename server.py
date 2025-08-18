@@ -42,7 +42,8 @@ async def detect(image: Union[str, UploadFile], target: str = ""):
     else:
         return JSONResponse(content={"error": "invalid parameters"})
 
-    _, json_boxes, bboxes_only, image_name = det.detect(image=image, target=target)
+    _prompt = det.expand_default_caption_prompt(target)
+    _, json_boxes, bboxes_only, image_name = det.detect(image=image, usr_prompt=_prompt)
     image_url = f"{env.OUTPUT_HTTP_PREFIX}/images/{image_name}"
     return JSONResponse(
         content={
@@ -77,7 +78,7 @@ async def chatCompletions(req: Request):
 
     json_output, _, _, _ = det.detect(
         image=image,
-        target=caption_prompt,
+        usr_prompt=caption_prompt,
         sys_prompt=system_prompt,
         model=model,
         max_tokens=req_json.get("max_tokens", None),

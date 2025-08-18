@@ -35,4 +35,5 @@ if __name__ == "__main__":
         from vl.detection import QwenVLDetection
 
         det = QwenVLDetection()
-        det.detect(image=args.image, target=args.prompt)
+        prompt = det.expand_default_caption_prompt(args.prompt)
+        det.detect(image=args.image, usr_prompt=prompt)

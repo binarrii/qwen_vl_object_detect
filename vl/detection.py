@@ -28,7 +28,7 @@ class QwenVLDetection(VLCaption):
     def detect(
         self,
         image,
-        target: str,
+        usr_prompt: str,
         sys_prompt: str = None,
         bbox_selection: str = "all",
         score_threshold: float = 0.6,
@@ -44,12 +44,11 @@ class QwenVLDetection(VLCaption):
         _model = self._check_model(model)
         _sys_prompt = sys_prompt or _SYSTEM_PROMPT
 
-        prompt = f"定位 `{target}` 并以JSON格式输出边界框 bbox 坐标和标签"
         messages = [
             {"role": "system", "content": _sys_prompt},
             {
                 "role": "user",
-                "content": [{"type": "text", "text": prompt}, {"image": image}],
+                "content": [{"type": "text", "text": usr_prompt}, {"image": image}],
             },
         ]
 
@@ -69,7 +68,7 @@ class QwenVLDetection(VLCaption):
             model=_model,
             ollama_model=None,
             system_prompt=_sys_prompt,
-            caption_prompt=prompt,
+            caption_prompt=usr_prompt,
             max_tokens=max_tokens,
             temperature=temperature,
             top_p=top_p,
@@ -104,11 +103,11 @@ class QwenVLDetection(VLCaption):
             x2 = max(b["bbox"][2] for b in boxes)
             y2 = max(b["bbox"][3] for b in boxes)
             score = max(b["score"] for b in boxes)
-            label = boxes[0].get("label", target)
+            label = boxes[0].get("label", usr_prompt)
             boxes = [{"bbox": [x1, y1, x2, y2], "score": score, "label": label}]
 
         json_boxes = [
-            {"bbox_2d": b["bbox"], "label": b.get("label", target)} for b in boxes
+            {"bbox_2d": b["bbox"], "label": b.get("label", usr_prompt)} for b in boxes
         ]
         json_output = json.dumps(json_boxes, ensure_ascii=False)
         bboxes_only = [b["bbox"] for b in boxes]
@@ -121,7 +120,7 @@ class QwenVLDetection(VLCaption):
         for box in boxes:
             bbox = box["bbox"]
             draw.rectangle(bbox, outline="red", width=2)
-            label = box.get("label", target)
+            label = box.get("label", usr_prompt)
             draw.text((bbox[0], bbox[1]), label, fill="red")
 
         image_name = f"{str(uuid.uuid4()).replace('-', '')}.png"

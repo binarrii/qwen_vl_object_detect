@@ -5,6 +5,9 @@ from openai import OpenAI
 
 
 class VLCaption:
+    def expand_default_caption_prompt(target: str):
+        return f"定位 `{target}` 并以JSON格式输出边界框 bbox 坐标和标签"
+
     def caption(
         self,
         image_in,
