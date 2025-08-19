@@ -32,9 +32,7 @@ async def post_start_task():
 
 
 app = FastAPI(lifespan=lifespan)
-
 app.mount("/images", StaticFiles(directory="output_images"), name="output_images")
-
 
 det = QwenVLDetection()
 
