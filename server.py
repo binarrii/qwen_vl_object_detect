@@ -1,7 +1,8 @@
 import asyncio
-from contextlib import asynccontextmanager
+import os
 import time
 import uuid
+from contextlib import asynccontextmanager
 from io import BytesIO
 from typing import Union
 
@@ -23,14 +24,6 @@ async def lifespan(_: FastAPI):
     yield
 
 
-app = FastAPI(lifespan=lifespan)
-
-app.mount("/images", StaticFiles(directory="output_images"), name="output_images")
-
-
-det = QwenVLDetection()
-
-
 async def post_start_task():
     await asyncio.sleep(1)
     print(f"\n{'#' * 30} {'#' * 30} {'#' * 30}\n")
@@ -38,9 +31,12 @@ async def post_start_task():
     print(f"\n{'#' * 30} {'#' * 30} {'#' * 30}\n")
 
 
-@app.on_event("startup")
-async def startup_event():
-    asyncio.create_task(post_start_task())
+app = FastAPI(lifespan=lifespan)
+
+app.mount("/images", StaticFiles(directory="output_images"), name="output_images")
+
+
+det = QwenVLDetection()
 
 
 @app.get("/health")
@@ -64,7 +60,8 @@ async def detect(image: Union[str, UploadFile], target: str = ""):
 
     _prompt = det.expand_default_caption_prompt(target)
     _, json_boxes, bboxes_only, image_name = det.detect(image=image, usr_prompt=_prompt)
-    image_url = f"{config.output_http_prefix}/images/{image_name}"
+    _url_prefix = os.getenv("OUTPUT_HTTP_PREFIX", config.output_http_prefix)
+    image_url = f"{_url_prefix}/images/{image_name}"
     print(f"output_image_url: {image_url}")
     return JSONResponse(
         content={
