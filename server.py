@@ -58,14 +58,12 @@ async def detect(image: Union[str, UploadFile], target: str = ""):
 
     _prompt = det.expand_default_caption_prompt(target)
     _, json_boxes, bboxes_only, image_name = det.detect(image=image, usr_prompt=_prompt)
-    _output_url_prefix = os.getenv("OUTPUT_HTTP_PREFIX", config.output_http_prefix)
-    image_url = f"{_output_url_prefix}/images/{image_name}"
-    print(f"output_image_url: {image_url}")
+
     return JSONResponse(
         content={
             "json_output": json_boxes,
             "bboxes_only": bboxes_only,
-            "image": image_url,
+            "image": _get_image_url(image_name),
         }
     )
 
@@ -94,7 +92,7 @@ async def chatCompletions(req: Request):
 
     model = req_json.get("model", None)
 
-    json_output, _, _, _ = det.detect(
+    json_output, _, _, image_name = det.detect(
         image=image,
         usr_prompt=caption_prompt,
         sys_prompt=system_prompt,
@@ -105,6 +103,7 @@ async def chatCompletions(req: Request):
         frequency_penalty=req_json.get("frequency_penalty", None),
         presence_penalty=req_json.get("presence_penalty", None),
     )
+    _get_image_url(image_name)
 
     raw_json = req_json.get("raw_json", False)
     output_content = json_output if raw_json else f"```json\n{json_output}\n```"
@@ -125,3 +124,10 @@ async def chatCompletions(req: Request):
             }
         ],
     }
+
+
+def _get_image_url(image_name: str):
+    _output_url_prefix = os.getenv("OUTPUT_HTTP_PREFIX", config.output_http_prefix)
+    image_url = f"{_output_url_prefix}/images/{image_name}"
+    print(f"output_image_url: {image_url}")
+    return image_url
