@@ -2,9 +2,9 @@ import json
 import uuid
 
 from PIL import Image, ImageDraw
-from transformers import AutoProcessor
+from transformers import AutoImageProcessor
 
-import env
+from config import config
 from utils.boxes import parse_boxes
 from vl.caption import VLCaption
 
@@ -17,13 +17,21 @@ _SYSTEM_PROMPT = """
 """
 
 
-class QwenVLDetection(VLCaption):
-    model_id: str = env.VL_MODEL
-    processor = AutoProcessor.from_pretrained(f"./{model_id}", trust_remote_code=True)
-    models = ["Qwen/Qwen2.5-VL-7B-Instruct", "Qwen/Qwen2.5-VL-32B-Instruct-AWQ"]
+def _prefix(model: str):
+    return model if model.startswith("./") else f"./{model}"
 
-    def _check_model(self, model: str):
-        return model if model in self.models else self.models[0]
+
+class QwenVLDetection(VLCaption):
+    models = config.models
+    processors = {
+        m.model_id: AutoImageProcessor.from_pretrained(
+            _prefix(m.model_id), trust_remote_code=True
+        )
+        for m in models
+    }
+
+    def _check_model(self, model_id: str):
+        return next((m for m in self.models if m.model_id == model_id), self.models[0])
 
     def detect(
         self,
@@ -44,28 +52,27 @@ class QwenVLDetection(VLCaption):
         _model = self._check_model(model)
         _sys_prompt = sys_prompt or _SYSTEM_PROMPT
 
-        messages = [
-            {"role": "system", "content": _sys_prompt},
-            {
-                "role": "user",
-                "content": [{"type": "text", "text": usr_prompt}, {"image": image}],
-            },
-        ]
+        print(f"model: {_model}")
 
-        text = self.processor.apply_chat_template(
-            messages, tokenize=False, add_generation_prompt=True
-        )
-        inputs = self.processor(
-            text=[text], images=[image], return_tensors="pt", padding=True
-        ).to("cpu")
-        input_h = inputs["image_grid_thw"][0][1] * 14
-        input_w = inputs["image_grid_thw"][0][2] * 14
+        processor = self.processors[_model.model_id]
+        inputs = processor(images=[image], return_tensors="pt").to("cpu")
+        try:
+            input_h = inputs["image_grid_thw"][0][1] * 14
+            input_w = inputs["image_grid_thw"][0][2] * 14
+        except:  # noqa: E722
+            # pixel_values = inputs['pixel_values']
+            # print(pixel_values.shape)
+            # n, c, h, w = pixel_values.shape
+            input_h, input_w = image.height, image.width
+
+        print(f"input_image_o: (h={image.height}, w={image.width})")
+        print(f"input_image_p: (h={input_h}, w={input_w})")
 
         output_text = self.caption(
             image_in=image,
             protocol="openai",
-            custom_model=self.model_id,
-            model=_model,
+            custom_model=_model.model_id,
+            model=None,
             ollama_model=None,
             system_prompt=_sys_prompt,
             caption_prompt=usr_prompt,
@@ -74,8 +81,8 @@ class QwenVLDetection(VLCaption):
             top_p=top_p,
             frequency_penalty=frequency_penalty,
             presence_penalty=presence_penalty,
-            base_url=env.VL_MODEL_BASE_URL,
-            api_key=env.VL_MODEL_API_KEY,
+            base_url=_model.base_url,
+            api_key=_model.api_key,
         )
         items = parse_boxes(
             output_text,
@@ -119,6 +126,13 @@ class QwenVLDetection(VLCaption):
         draw = ImageDraw.Draw(new_image)
         for box in boxes:
             bbox = box["bbox"]
+            if processor.do_center_crop:
+                if image.width > image.height:
+                    bbox[0] += (image.width - image.height) / 2
+                    bbox[2] += (image.width - image.height) / 2
+                if image.height > image.width:
+                    bbox[1] += (image.height - image.width) / 2
+                    bbox[3] += (image.height - image.width) / 2
             draw.rectangle(bbox, outline="red", width=2)
             label = box.get("label", usr_prompt)
             draw.text((bbox[0], bbox[1]), label, fill="red")
@@ -126,5 +140,6 @@ class QwenVLDetection(VLCaption):
         image_name = f"{str(uuid.uuid4()).replace('-', '')}.png"
         image_file = f"output_images/{image_name}"
         new_image.save(image_file)
+        print(f"output_image_file: {image_file}")
 
         return (json_output, json_boxes, bboxes_only, image_name)

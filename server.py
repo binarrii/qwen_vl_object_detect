@@ -1,3 +1,5 @@
+import asyncio
+from contextlib import asynccontextmanager
 import time
 import uuid
 from io import BytesIO
@@ -8,17 +10,37 @@ from fastapi import FastAPI, Request, UploadFile
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from PIL import Image
+from rich.pretty import pprint
 
-import env
+from config import config
 from utils.image import b64_to_pil
 from vl.detection import QwenVLDetection
 
-app = FastAPI()
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    asyncio.create_task(post_start_task())
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
 
 app.mount("/images", StaticFiles(directory="output_images"), name="output_images")
 
 
 det = QwenVLDetection()
+
+
+async def post_start_task():
+    await asyncio.sleep(1)
+    print(f"\n{'#' * 30} {'#' * 30} {'#' * 30}\n")
+    pprint(config)
+    print(f"\n{'#' * 30} {'#' * 30} {'#' * 30}\n")
+
+
+@app.on_event("startup")
+async def startup_event():
+    asyncio.create_task(post_start_task())
 
 
 @app.get("/health")
@@ -42,7 +64,8 @@ async def detect(image: Union[str, UploadFile], target: str = ""):
 
     _prompt = det.expand_default_caption_prompt(target)
     _, json_boxes, bboxes_only, image_name = det.detect(image=image, usr_prompt=_prompt)
-    image_url = f"{env.OUTPUT_HTTP_PREFIX}/images/{image_name}"
+    image_url = f"{config.output_http_prefix}/images/{image_name}"
+    print(f"output_image_url: {image_url}")
     return JSONResponse(
         content={
             "json_output": json_boxes,
