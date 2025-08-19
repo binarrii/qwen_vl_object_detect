@@ -60,8 +60,8 @@ async def detect(image: Union[str, UploadFile], target: str = ""):
 
     _prompt = det.expand_default_caption_prompt(target)
     _, json_boxes, bboxes_only, image_name = det.detect(image=image, usr_prompt=_prompt)
-    _url_prefix = os.getenv("OUTPUT_HTTP_PREFIX", config.output_http_prefix)
-    image_url = f"{_url_prefix}/images/{image_name}"
+    _output_url_prefix = os.getenv("OUTPUT_HTTP_PREFIX", config.output_http_prefix)
+    image_url = f"{_output_url_prefix}/images/{image_name}"
     print(f"output_image_url: {image_url}")
     return JSONResponse(
         content={
