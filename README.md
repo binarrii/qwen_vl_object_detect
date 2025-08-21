@@ -2,7 +2,7 @@
 
 **Effect display**
 
-![Sample Detection Output](./output_images/e847880800524519bf83b96d2a736155.png)
+![Sample Detection Output](./output_images/a120b674aa8f469b92aa6bb13bf9f029.png)
 
 
 ### Build
@@ -44,38 +44,38 @@ Api output
   "json_output": [
     {
       "bbox_2d": [
-        292,
-        198,
-        687,
-        800
+        290,
+        200,
+        659,
+        796
       ],
-      "label": "dog"
+      "label": "小狗"
     },
     {
       "bbox_2d": [
-        681,
-        155,
-        1064,
-        753
+        678,
+        156,
+        1053,
+        754
       ],
-      "label": "dog"
+      "label": "小狗"
     }
   ],
   "bboxes_only": [
     [
-      292,
-      198,
-      687,
-      800
+      290,
+      200,
+      659,
+      796
     ],
     [
-      681,
-      155,
-      1064,
-      753
+      678,
+      156,
+      1053,
+      754
     ]
   ],
-  "image": "http://10.252.25.251:8186/images/87e9cbf99b5b4de7a40f0402d781a959.png"
+  "image": "http://10.252.25.251:8186/images/a120b674aa8f469b92aa6bb13bf9f029.png"
 }
 
 ```
